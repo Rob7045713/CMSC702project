@@ -1,0 +1,8 @@
+<synonymList>
+	<class name="Exon">
+		<attribute name="location" type="location">
+			<synonym name="location"/>
+			<synonym name="geneLocation"/>
+		</attribute>
+	</class>
+</synonymList>

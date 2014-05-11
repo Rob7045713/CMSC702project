@@ -1,0 +1,27 @@
+<format ext="jnct_expr" delimited="true" delimiter="\t">
+	<loader ref="load_delimited" language="R"/>
+	<class name="Exon">
+		<primaryId field="location"/>
+		<attribute label="exon" name="geneLocation" type="geneLocation"/>
+		<collection name="junctions" type="Junction" /> 
+		<collection name="jnct_exprs" type="jnct_expr"/>
+	</class>
+	<class name="Junction">
+		<primaryId field="exon1,exon2"/>
+		<attribute name="exon1" type="Exon"/>
+		<attribute name="exon2" type="Exon"/>
+	</class>
+	<class name="Experiment">
+		<primaryId field="barcode"/>
+		<attribute label="barcode" name="barcode" type="string"/>
+		<collection name="jnct_expr" type="jnct_expr"/>
+	</class>
+	<class name="jnct_expr">
+		<primaryId field="barcode,junction"/>
+		<attribute label="barcode" name="barcode" type="string"/>
+		<attribute label="junction" name="junction" type="Junction"/>
+		<attribute label="raw_counts" name="raw_counts" type="float"/>
+		<reference label="junction" name="Junction" type="Junction"/>
+		<reference label="barcode" name="Experiment" type="Experiment"/>
+	</class>
+</format>
