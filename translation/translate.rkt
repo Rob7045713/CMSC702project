@@ -35,12 +35,6 @@
 (define collection (link 'collection)) ; String String String? -> <collection>
 (define reference (link 'reference))   ; String String String? -> <reference>
 
-(define-syntax-rule (pluralize f f*)
-  (define-syntax-rule (f* [x (... ...)] (... ...)) (list (f x (... ...)) (... ...))))
-(pluralize attribute attributes)
-(pluralize collection collections)
-(pluralize reference references)
-
 
 ;;;;; TRANSLATION
 
@@ -57,9 +51,6 @@
 (define (lookup* l . ks) (map (curry lookup l) ks))
 
 ;;; extract data from Rob's <class>
-(define rob/class->prim-id ; <class> -> String
-  (match-lambda
-    [(<> class _ ... (<> primaryId (@: [field s])) _ ...) s]))
 (define rob/class->attributes ; <class> -> (List String String)
   (match-lambda
     [(<> class body ...) (for/list ([b (filter-tag 'attribute body)])
@@ -72,8 +63,6 @@
 (define rob/class->references (rob/class->links 'reference))
 (define (rob/class->name c) ; <class> -> String
   (lookup (second c) 'name))
-(define rob/format->classes ; <format> -> (Listof <class>)
-  (match-lambda [(<> format body ...) (filter-tag 'class body)]))
 
 ;; translate Rob's XML to Intermine's XML
 (define translate
