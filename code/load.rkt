@@ -31,7 +31,7 @@
                 [id (lookup/list obj prim-ids)])
            (values id obj))))]))
 
-#;(define x ((mk-class-loader `(class ([name exon_expr])
+(define x ((mk-class-loader `(class ([name exon_expr])
                      (primaryId ([field "barcode,exon"]))
                      (attribute ([label "barcode"]))
                      (attribute ([label "exon"]))
