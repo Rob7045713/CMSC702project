@@ -1,7 +1,7 @@
 #lang racket
 ;; this module uses Rob's XML to load data
 (provide (all-defined-out))
-(require "xexpr.rkt" "translate.rkt")
+(require "xexpr.rkt" "rob.rkt")
 
 ;; Dtb       ::= Listof (Id × Table)
 ;; Table     ::= Map Id Obj
@@ -14,7 +14,7 @@
 ;; retrives 'label' attribute of all given XExpr with given tag
 (define (label-at xexprs tag)
   (for/list ([a (filter-tag tag xexprs)])
-    (second (assoc 'label (second a)))))
+    (lookup (second a) 'label)))
 
 ;; XExpr String? -> (Input-Port -> Dtb)
 (define ((mk-class-loader class-desc [delim "\t"]) fn)
