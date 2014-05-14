@@ -1,0 +1,84 @@
+<type name="location">
+	<operation name="overlap" params="location" src="find_overlaps.r" />
+</type>
+<type name="float">
+	<operation name="mean" params="" src="AVG()" />
+	<operation name="median" params="" src="utils.sql->median" />
+	<operation name="max" params="" src="MAX()" />
+	<operation name="min" params="" src="MIN()" />
+</type>
+<type name="string">
+	<operation name="find" params="string" src="utils.sql->find" />
+</type>
+
+<operation name="mean">
+	<param>
+		<query view="exon_expr.raw_count">
+			<constraint path="exon_expr.barcode" op="=" value="experiment1"/>
+</query></param></operation>
+
+{ "mean" : [{
+    select: ["exon_expr.raw_count"],
+    where: { "exon_expr.barcode": {"=": "experiment1"} }
+  }] 
+}
+
+<operation name="overlap">
+	<param>
+		<query view="exon_expr.location">
+			<constraint path="exon_expr.barcode" op="=" value="experiment1"/>
+		</query>
+	</param><param>
+		<query view="exon_expr.location">
+			<constraint path="exon_expr.barcode" op="=" value="experiment2"/>
+		</query>
+</param></operation>
+
+{ "overlap" : [{
+    select: ["exon_expr.location"],
+    where: { "exon_expr.barcode": {"=": "experiment1"} }
+  },{
+    select: ["exon_expr.location"],
+    where: { "exon_expr.barcode": {"=": "experiment2"} }
+  }] 
+}
+
+First parameter automatically self, only add additional parameters
+All parameters are arrays, can be one or more
+All return values are arrays, can be one or more
+
+Find out if 2 exons overlap
+SELECT overlap(location, (SELECT location FROM exon_expr WHERE exon='exon1')) FROM exon_expr WHERE exon='exon2';
+
+Find all overlaps from 2 experiments
+SELECT overlap(location, (SELECT location FROM exon_expr WHERE barcode='experiment1')) FROM exon_expr WHERE barcode='experiment2';
+
+Find average count of expressions in an experiment
+SELECT mean(raw_count) FROM exon_expr WHERE barcode='experiment1';
+
+Find matching exon names between experiments
+SELECT find(exon, SELECT exon FROM exon_expr WHERE barcode='experiment1') FROM exon_expr WHERE barcode='experiment2;
+
+utils.sql
+CREATE FUNCTION median
+RETURNS decimal
+AS
+BEGIN
+   RETURN ( ... )
+END
+
+CREATE FUNCTION find ( @FreightParm money )
+RETURNS @OrderShipperTab TABLE
+   (
+    ShipperName   nvarchar(80)
+   )
+AS
+BEGIN
+   INSERT @OrderShipperTab
+        SELECT S.ShipperID, S.CompanyName,
+               O.OrderID, O.ShippedDate, O.Freight
+        FROM Shippers AS S
+             INNER JOIN Orders AS O ON (S.ShipperID = O.ShipVia)
+        WHERE O.Freight > @FreightParm
+   RETURN
+END
