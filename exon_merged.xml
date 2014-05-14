@@ -1,0 +1,7 @@
+<class name="Exon">
+	<primaryId field="location"/>
+	<attribute label="exon" name="location" type="location"/> 
+	<collection name="expressions" type="exon_expr"/>
+	<collection name="junctions" type="Junction" /> 
+	<collection name="jnct_exprs" type="jnct_expr"/>
+</class>
