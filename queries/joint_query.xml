@@ -1,0 +1,14 @@
+<operation name="mean">
+  <param>
+    <query view="exon_expr.raw_counts">
+      <constraint path="exon_expr.barcode" op="=" value="TCGA-A6-5659-01A-01R-1653-07" />
+    </query>
+  </param>
+</operation>
+<operation name="mean">
+  <param>
+    <query view="patient_coad.age_at_initial_pathologic_diagnosis">
+      <constraint path="patient_coad.race" op="=" value="WHITE" />
+    </query>
+  </param>
+</operation>

@@ -1,0 +1,8 @@
+<operation name="mean">
+  <param>
+    <query view="exon_expr.raw_counts">
+      <constraint path="exon_expr.barcode" op="=" value="TCGA-A6-5659-01A-01R-1653-07" />
+      <constraint path="exon_expr.raw_counts" op=">" value="500" />
+    </query>
+  </param>
+</operation>
