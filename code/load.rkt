@@ -73,8 +73,6 @@
 ;; Table TableDesc TableDesc -> Table
 (define (make-aux-table main main-desc aux-desc)
   (let* ([a-labels/aux (map first (table-desc-attributes aux-desc))]
-         #;[a-names/aux (map second (table-desc-attributes aux-desc))]
-         #;[a-names/main (map first (table-desc-attributes main-desc))]
          [a-labels/main (map second (table-desc-attributes main-desc))]
          [a-indices/aux (for/list ([l a-labels/aux]) (index-of l a-labels/main))]
          [c-names/aux (map first (table-desc-collections aux-desc))]

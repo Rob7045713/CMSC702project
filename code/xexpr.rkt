@@ -34,3 +34,5 @@
 (define (lookup l k) (second (assoc k l)))
 (define (lookup/list l ks) (map (curry lookup l) ks))
 (define (lookup* l . ks) (lookup/list l ks))
+
+(define xexpr->attributes second)
