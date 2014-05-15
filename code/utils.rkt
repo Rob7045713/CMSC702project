@@ -4,6 +4,8 @@
 (provide (all-defined-out))
 (require racket/set racket/match racket/string)
 
+(define verbose? (make-parameter #f))
+
 ;; empty set
 (define ∅ {set})
 

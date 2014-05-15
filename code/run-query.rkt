@@ -1,5 +1,6 @@
 #lang racket/base
-(require racket/cmdline racket/list racket/string "xexpr.rkt" "load.rkt")
+(require racket/cmdline racket/list racket/string
+         "utils.rkt" "xexpr.rkt" "load.rkt" "query.rkt")
 
 (command-line
  #:once-each
