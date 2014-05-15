@@ -110,7 +110,10 @@
 ;; String -> (Any * -> Any)
 (define string->op ; TODO this assumes correct args
   (match-lambda
-    ["=" equal?] ["<" <] [">" >] ["<=" <=] [">=" >=]
+    ["=" (match-lambda*
+           [(list (? string? s) ...) (apply string-ci=? s)]
+           [(cons x xs) (for/and ([z xs]) (equal? x z))])]
+    ["<" <] [">" >] ["<=" <=] [">=" >=]
     ["sum" +] ["prod" *]
     ["mean" (λ xs (/ (apply + xs) (length xs)))]
     ["max" max] ["min" min]
