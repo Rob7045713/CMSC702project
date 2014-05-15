@@ -8,7 +8,8 @@
                   xml->xexpr read-xml/element))
 
 (empty-tag-shorthand 'always)
-(define display-xexpr (compose display-xml/content xexpr->xml))
+(define (display-xexpr doc [out (current-output-port)])
+  (display-xml/content (xexpr->xml doc) out))
 
 (define (elim-strings xexpr)
   (match xexpr
