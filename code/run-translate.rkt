@@ -3,7 +3,6 @@
 
 (command-line
  #:args sources
- 
  (for ([fn sources])
    (display-xexpr (rob->intermine (read-xexpr fn))
                   (open-output-file (string-append fn ".out") #:exists 'replace))))

@@ -6,6 +6,8 @@
 
 (struct table-desc (name primary-ids attributes references collections) #:transparent)
 
+(define verbose? (make-parameter #f))
+
 ;; TableDesc (Id -> Int) -> (Table (Listof Val) -> Void)
 (define (make-updater desc label->idx)
   ;; TODO references and collecions
@@ -42,6 +44,10 @@
                (for ([update! update!s] [tab tables])
                  (update! tab fields))))))
        ;; TODO second pass resolving references
+       (when (verbose?)
+         (printf "Done loading. Objects created:~n")
+         (for ([t tables] [c class-descs])
+           (printf "-- ~a ~a(s)~n" (hash-count t) (table-desc-name c))))
        (map list class-descs tables))]
     [desc (error "BS format description" desc)]))
 

@@ -2,6 +2,8 @@
 (require racket/cmdline "xexpr.rkt" "load.rkt")
 
 (command-line
+ #:once-each
+ [("-v" "--verbose") "Verbose mode" (verbose? #t)]
  #:args (desc.xml query.xml . data)
  (printf
   "Query result: ~a~n"
