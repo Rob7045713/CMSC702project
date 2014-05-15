@@ -64,12 +64,12 @@
          [a-converters (map (compose type->converter third) (table-desc-attributes desc))]
          [id-names (table-desc-primary-ids desc)])
     
-    (for/hash ([l (apply sequence-append (for/list ([in ins]) (sequence-tail in 1)))])
+    (for*/fold ([tab (hash)]) ([in (in-list ins)] [l (sequence-tail (in-lines in) 1)])
       (let* ([fields (for/list ([s (string-split l delim)] [convert a-converters])
                        (convert s))]
              [id-fields (for/list ([v fields] [n a-names] #:when (member n id-names)) v)])
         ;; TODO do references too or just lookup?
-        (values id-fields fields)))))
+        (hash-set tab id-fields fields)))))
 
 ;; Table TableDesc TableDesc -> Table
 ;; make auxiliary table from main table and descriptions
@@ -158,19 +158,3 @@
               [else (error "Unknown path(s), check for typos" (list view path))]))]
          [else (error "Query enot supported yet" xexpr)]))]
     [q (error "Query not supported yet" q)]))
-
-(define desc (read-xexpr (open-input-file "../file_formats/exon_expr.xml")))
-
-;;;;; tests
-(define Exon (match-let ([(<> format _ body ...) desc])
-               (xexpr->table-desc (first (filter-tag 'class body)))))
-(define Experiment (match-let ([(<> format _ body ...) desc])
-                     (xexpr->table-desc (second (filter-tag 'class body)))))
-(define exon_expr (match-let ([(<> format _ body ...) desc])
-                    (xexpr->table-desc (third (filter-tag 'class body)))))
-(define query-mean `(operation ([name "mean"])
-                      (param
-                       (query ([view "exon_expr.raw_counts"])
-                         (constraint ([path "exon_expr.barcode"] [op "="] [value "experiment1"]))))))
-(require racket/trace)
-#;(trace dtb-name->idx)

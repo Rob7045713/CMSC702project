@@ -9,7 +9,15 @@
 
 (empty-tag-shorthand 'always)
 (define display-xexpr (compose display-xml/content xexpr->xml))
-(define read-xexpr (compose xml->xexpr read-xml/element))
+
+(define (elim-strings xexpr)
+  (match xexpr
+    [(list s (and a (list (list _ _) ...)) body ...)
+     (list* s a (for/list ([b body] #:unless (string? b)) (elim-strings b)))]
+    [(cons s body) (cons s (for/list ([b body] #:unless (string? b)) (elim-strings b)))]
+    [x x]))
+
+(define read-xexpr (compose elim-strings xml->xexpr read-xml/element))
 
 ;;;;; xml pattern matching
 (define-match-expander <>
