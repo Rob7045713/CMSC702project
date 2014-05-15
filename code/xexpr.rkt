@@ -8,8 +8,12 @@
                   xml->xexpr read-xml/element))
 
 (empty-tag-shorthand 'always)
+
+;; XExpr (∪ Path Output-Port) -> Void
 (define (display-xexpr doc [out (current-output-port)])
-  (display-xml/content (xexpr->xml doc) out))
+  (match out
+    [(? string? fn) (display-xexpr doc (open-output-file fn #:exists 'replace))]
+    [port (display-xml/content (xexpr->xml doc) port)]))
 
 (define (elim-strings xexpr)
   (match xexpr

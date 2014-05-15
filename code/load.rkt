@@ -127,16 +127,14 @@
 
 ;; (Listof (TableDesc Table)) String -> Table
 (define (table-by-name dtb name)
-  (for*/first ([tb dtb]
-               [tb-name (in-value (table-desc-name (first tb)))]
-               #:when (equal? name tb-name))
+  (for*/first ([tb dtb] #:when (equal? name (in-value (table-desc-name (first tb)))))
     tb))
 
 ;; convert string to other data
 (define (type->converter t)
   (match t
     [(or "float" "int" "integer" "real" "number") string->number]
-    #;[(or "bool" "boolean")
+    #;[(or "bool" "boolean") ; FIXME use match + insensitive regexp
        (λ (s)
          (cond [(or (string-ci=? s "yes") (string-ci=? s "true")) #t]
                [(or (string-ci=? s "no") (string-ci=? s "false")) #f]
