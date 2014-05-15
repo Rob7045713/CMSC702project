@@ -18,7 +18,11 @@
     [(cons s body) (cons s (for/list ([b body] #:unless (string? b)) (elim-strings b)))]
     [x x]))
 
-(define read-xexpr (compose elim-strings xml->xexpr read-xml/element))
+;; (∪ Path Input-Port) -> XExpr
+(define (read-xexpr in)
+  (match in
+    [(? string?) (read-xexpr (open-input-file in))]
+    [port (elim-strings (xml->xexpr (read-xml/element port)))]))
 
 ;;;;; xml pattern matching
 (define-match-expander <>

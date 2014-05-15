@@ -24,3 +24,9 @@
 ;; escape special characters. FIXME: there must be a standard way
 (define (escape s)
   (string-replace s "\\t" "\t"))
+
+(define ∘ compose)
+
+;; convert a hashtable to a function
+(define ((map->fun m) x)
+  (hash-ref m x (λ () (error "out of domain" x (hash-keys m)))))
