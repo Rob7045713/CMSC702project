@@ -25,7 +25,11 @@ For example:
 
 Result:
 > Done loading. Objects created:
+
 > -- 239321 Exon(s)
+
 > -- 5 Experiment(s)
+
 > -- 1196605 exon_expr(s)
+
 > Query result: 504.0117708015594
