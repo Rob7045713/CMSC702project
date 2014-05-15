@@ -27,7 +27,7 @@
                 [col->idx (map->fun (for/hash ([col header] [i (in-naturals)])
                                       (values col i)))]
                 [update!s (for/list ([desc class-descs]) (make-updater desc col->idx))])
-           (for ([l (sequence-tail lines 1)])
+           (for ([l lines])
              (let ([fields (string-split l delim)])
                (for ([update! update!s] [tab tables])
                  (update! tab fields))))))
@@ -83,6 +83,8 @@
                  [value↓ ((type->converter constraint-type) value)])
             (cond
               [(and (integer? view-col↓) (integer? constraint-col↓))
+               (when (verbose?)
+                 (printf "Query: ~a(~a) where (~a ~a ~a)~n" op view path constraint-op value))
                (apply
                 op↓
                 (for/list ([obj (in-hash-values (second tab))]
