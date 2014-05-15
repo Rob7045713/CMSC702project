@@ -1,4 +1,4 @@
-#lang racket
+#lang racket/base
 ;; this module provides convenient functions for constructing Intermine's xml
 (provide (all-defined-out))
 (require "xexpr.rkt")

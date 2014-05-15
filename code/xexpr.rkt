@@ -1,14 +1,28 @@
-#lang racket
+#lang racket/base
 
 ;; this module provides convenient functions/macros for dealing with XML
 (provide (all-defined-out))
 
+(require racket/match racket/list racket/function)
 (require (only-in xml write-xexpr xexpr? display-xml/content xexpr->xml empty-tag-shorthand
                   xml->xexpr read-xml/element))
 
 (empty-tag-shorthand 'always)
-(define display-xexpr (compose display-xml/content xexpr->xml))
-(define read-xexpr (compose xml->xexpr read-xml/element))
+(define (display-xexpr doc [out (current-output-port)])
+  (display-xml/content (xexpr->xml doc) out))
+
+(define (elim-strings xexpr)
+  (match xexpr
+    [(list s (and a (list (list _ _) ...)) body ...)
+     (list* s a (for/list ([b body] #:unless (string? b)) (elim-strings b)))]
+    [(cons s body) (cons s (for/list ([b body] #:unless (string? b)) (elim-strings b)))]
+    [x x]))
+
+;; (∪ Path Input-Port) -> XExpr
+(define (read-xexpr in)
+  (match in
+    [(? string?) (read-xexpr (open-input-file in))]
+    [port (elim-strings (xml->xexpr (read-xml/element port)))]))
 
 ;;;;; xml pattern matching
 (define-match-expander <>
@@ -34,3 +48,5 @@
 (define (lookup l k) (second (assoc k l)))
 (define (lookup/list l ks) (map (curry lookup l) ks))
 (define (lookup* l . ks) (lookup/list l ks))
+
+(define xexpr->attributes second)

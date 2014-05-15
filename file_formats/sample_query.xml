@@ -13,7 +13,7 @@
 
 <operation name="mean">
 	<param>
-		<query view="exon_expr.raw_count">
+		<query view="exon_expr.raw_counts">
 			<constraint path="exon_expr.barcode" op="=" value="experiment1"/>
 </query></param></operation>
 
