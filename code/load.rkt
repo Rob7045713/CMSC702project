@@ -1,7 +1,8 @@
-#lang racket
+#lang racket/base
 ;; this module uses Rob's XML to load data
 (provide (all-defined-out))
-(require "utils.rkt" "xexpr.rkt" "rob.rkt")
+(require racket/list racket/match racket/string racket/sequence racket/function
+         "utils.rkt" "xexpr.rkt" "rob.rkt")
 
 (struct table-desc (name primary-ids attributes references collections) #:transparent)
 

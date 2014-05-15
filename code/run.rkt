@@ -1,5 +1,5 @@
-#lang racket
-(require "xexpr.rkt" "load.rkt")
+#lang racket/base
+(require racket/cmdline "xexpr.rkt" "load.rkt")
 
 (command-line
  #:args (desc.xml . data)

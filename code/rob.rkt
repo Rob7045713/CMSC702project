@@ -1,7 +1,7 @@
-#lang racket
+#lang racket/base
 ;; this module provides translation from Intermine's XML to Rob's XML
 (provide (all-defined-out))
-(require "xexpr.rkt" "intermine.rkt")
+(require racket/match racket/list racket/function "xexpr.rkt" "intermine.rkt")
 
 ;;; extract data from Rob's <class>
 (define rob/class->primary-id ; <class> -> String
@@ -30,7 +30,3 @@
                 (map (curry apply attribute) (rob/class->attributes b))
                 (map (curry apply reference) (rob/class->references b))
                 (map (curry apply collection) (rob/class->collections b)))))]))
-
-;;;;; test data
-#;(define rob (read-xexpr (open-input-file "../file_formats/jnct_expr.xml")))
-#;(display-xexpr (rob->intermine rob))

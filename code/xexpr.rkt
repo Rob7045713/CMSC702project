@@ -1,8 +1,9 @@
-#lang racket
+#lang racket/base
 
 ;; this module provides convenient functions/macros for dealing with XML
 (provide (all-defined-out))
 
+(require racket/match racket/list racket/function)
 (require (only-in xml write-xexpr xexpr? display-xml/content xexpr->xml empty-tag-shorthand
                   xml->xexpr read-xml/element))
 

@@ -1,7 +1,8 @@
-#lang racket
+#lang racket/base
 
 ;; this module provides generic helper utilities
 (provide (all-defined-out))
+(require racket/set racket/match racket/string)
 
 ;; empty set
 (define ∅ {set})
