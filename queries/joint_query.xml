@@ -1,0 +1,8 @@
+<operation name="mean">
+  <param>
+    <query view="exon_expr.raw_counts">
+      	<constraint path="exon_expr.exon" op="=" value="chr10:100003848-100004653:+" />
+      	<constraint path="Patient.pathologic_stage" op="=" value="Stage I" />
+    </query>
+  </param>
+</operation>
