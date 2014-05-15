@@ -3,35 +3,32 @@
 (provide (all-defined-out))
 (require "utils.rkt" "xexpr.rkt" "rob.rkt")
 
-;; Dtb       ::= Listof (Id × Table)
-;; Table     ::= Map Id Obj
-;; Obj       ::= Listof (Id × Val)
-;; (associative lists are usually faster that hash tables for <20 elements)
-
 (struct table-desc (name primary-ids attributes references collections) #:transparent)
 
-(define (load-dtb format-desc in)
+(define (dtb-name->idx dtb tab-name col-name)
+  (let ([tab (table-by-name dtb tab-name)])
+    (for/first ([attr (table-desc-attributes (first tab))]
+                [i (in-naturals)]
+                #:when (equal? col-name (second attr)))
+      i)))
+
+;; XExpr Input-Port -> (Listof (TableDesc × (Map (Listof Id) (Listof Val))))
+;; load database from given description and input stream
+(define (load-dtb format-desc ins)
   (match format-desc
     [(<> format (@: [ext name] [delimited "true"] [delimiter d]) body ...)
-     (let*-values ([(class-descs)
-                    (map xexpr->table-desc (filter-tag 'class body))]
-                   [(main-desc aux-descs)
-                    (partition (match-lambda
-                                 [(table-desc n _ _ _ _) (equal? n name)])
-                               class-descs)]
-                   [(main-table)
-                    (list (first main-desc)
-                          (load-main-table (first main-desc) in (escape d)))]
-                   [(aux-tables)
-                    (for/list ([aux-desc aux-descs])
-                      (list aux-desc (make-aux-table (second main-table) (first main-table) aux-desc)))])
-       (cons main-table aux-tables))]
+     (match-let*-values ([(class-descs)
+                          (map xexpr->table-desc (filter-tag 'class body))]
+                         [((list main-desc) aux-descs)
+                          (partition (match-lambda
+                                       [(table-desc n _ _ _ _) (equal? n name)])
+                                     class-descs)]
+                         [(main-table) (load-main-table main-desc ins (escape d))]
+                         [(aux-tables)
+                          (for/list ([aux-desc aux-descs])
+                            (make-aux-table main-table main-desc aux-desc))])
+       (resolve-references (cons main-table aux-tables) (cons main-desc aux-descs)))]
     [desc (error "BS format description" desc)]))
-
-;; String -> String
-;; escape special characters. FIXME: there must be a standard way
-(define (escape s)
-  (string-replace s "\\t" "\t"))
 
 ;; XExpr -> TableDesc
 (define (xexpr->table-desc xexpr)
@@ -59,18 +56,22 @@
     [desc (error "BS class description" desc)]))
 
 ;; TableDesc InputPort -> Table
-(define (load-main-table desc in [delim "\t"])
+;; load main-table from given input stream
+(define (load-main-table desc ins [delim "\t"])
   (let* ([a-labels (map first (table-desc-attributes desc))]
          [a-names (map second (table-desc-attributes desc))]
          [a-converters (map (compose type->converter third) (table-desc-attributes desc))]
          [id-names (table-desc-primary-ids desc)])
-    (for/hash ([l (sequence-tail (in-lines in) 1)])
+    
+    (for/hash ([l (apply sequence-append (for/list ([in ins]) (sequence-tail in 1)))])
       (let* ([fields (for/list ([s (string-split l delim)] [convert a-converters])
                        (convert s))]
              [id-fields (for/list ([v fields] [n a-names] #:when (member n id-names)) v)])
+        ;; TODO do references too or just lookup?
         (values id-fields fields)))))
 
 ;; Table TableDesc TableDesc -> Table
+;; make auxiliary table from main table and descriptions
 (define (make-aux-table main main-desc aux-desc)
   (let* ([a-labels/aux (map first (table-desc-attributes aux-desc))]
          [a-labels/main (map second (table-desc-attributes main-desc))]
@@ -92,6 +93,24 @@
           [#f (hash-set aux aux-ids aux-fields)]
           [_ aux])))))
 
+;; (Listof Table) (Listof TableDesc) -> (Listof Table)
+;; resolve references between objects
+(define (resolve-references tabs descs)
+  (map list descs tabs) ; TODO
+  #;(match-let ([(cons main-tab aux-tabs) tabs]
+                [(cons main-desc aux-descs) descs])
+      (for ([reference (table-desc-references main-desc)])
+        (match-let ([(list ref-label ref-name ref-type) reference])
+          (for ([(main-ids main-fields) (in-hash main-tab)])
+            )))))
+
+;; (Listof (TableDesc Table)) String -> Table
+(define (table-by-name dtb name)
+  (for*/first ([tb dtb]
+               [tb-name (in-value (table-desc-name (first tb)))]
+               #:when (equal? name tb-name))
+    tb))
+
 ;; convert string to other data
 (define (type->converter t)
   (match t
@@ -99,10 +118,58 @@
     [(or "bool" "boolean") (match-lambda ["true" #t] ["false" #f])]
     [_ identity]))
 
+;; String -> (List String String)
+(define (string->path s) (string-split s "."))
+
+;; String -> (Any * -> Any)
+(define string->op ; TODO this assumes correct args
+  (match-lambda
+    ["=" equal?] ["<" <] [">" >] ["<=" <=] [">=" >=]
+    ["sum" +] ["prod" *]
+    ["mean" (λ xs (/ (apply + xs) (length xs)))]
+    ["max" max] ["min" min]
+    [x (error "Unknown operation" x)]))
+
+;; Dtb Xexpr -> Any
+(define (query dtb xexpr)
+  (match xexpr
+    [(<> operation (@: [name op])
+         (<> param _ ... (<> query (@: [view view])
+                             (<> constraint (@: [path path] [op constraint-op] [value value])))))
+     (match-let ([(list view-tab view-col) (string->path view)]
+                 [(list constraint-tab constraint-col) (string->path path)])
+       (cond
+         [(equal? view-tab constraint-tab)
+          (let* ([tab (table-by-name dtb view-tab)]
+                 [view-col↓ (dtb-name->idx dtb view-tab view-col)]
+                 [constraint-col↓ (dtb-name->idx dtb constraint-tab constraint-col)]
+                 [op↓ (string->op op)]
+                 [constraint-op↓ (string->op constraint-op)]
+                 [constraint-type (third (list-ref (table-desc-attributes (first tab)) constraint-col↓))]
+                 [value↓ ((type->converter constraint-type) value)])
+            (cond
+              [(and (integer? view-col↓) (integer? constraint-col↓))
+               (apply
+                op↓
+                (for/list ([obj (in-hash-values (second tab))]
+                           #:when (constraint-op↓ (list-ref obj constraint-col↓) value↓))
+                  (list-ref obj view-col↓)))]
+              [else (error "Unknown path(s), check for typos" (list view path))]))]
+         [else (error "Query enot supported yet" xexpr)]))]
+    [q (error "Query not supported yet" q)]))
+
 (define desc (read-xexpr (open-input-file "../file_formats/exon_expr.xml")))
+
+;;;;; tests
 (define Exon (match-let ([(<> format _ body ...) desc])
                (xexpr->table-desc (first (filter-tag 'class body)))))
 (define Experiment (match-let ([(<> format _ body ...) desc])
                      (xexpr->table-desc (second (filter-tag 'class body)))))
 (define exon_expr (match-let ([(<> format _ body ...) desc])
                     (xexpr->table-desc (third (filter-tag 'class body)))))
+(define query-mean `(operation ([name "mean"])
+                      (param
+                       (query ([view "exon_expr.raw_counts"])
+                         (constraint ([path "exon_expr.barcode"] [op "="] [value "experiment1"]))))))
+(require racket/trace)
+#;(trace dtb-name->idx)

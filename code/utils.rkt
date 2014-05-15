@@ -18,3 +18,8 @@
 ;; takes values in xs at given indices
 (define (take-indices xs indices)
   (for/list ([i indices]) (list-ref xs i)))
+
+;; String -> String
+;; escape special characters. FIXME: there must be a standard way
+(define (escape s)
+  (string-replace s "\\t" "\t"))
