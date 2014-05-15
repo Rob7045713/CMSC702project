@@ -1,0 +1,81 @@
+<format ext="patient_coad" delimited="true" delimiter="\t" missing="[Not Available]" true="YES" false="NO">
+	<loader ref="load_delimited" language="R"/>
+	<class name="Experiment">
+		<primaryId field="barcode"/>
+		<attribute name="barcode" label="bcr_patient_barcode" type="string"/>
+		<reference name="patient" label="bcr_patient_barcode" type="Patient"/>
+	</class>
+	<class name="Patient">
+		<primaryId field="barcode"/>
+		<attribute name="barcode" label="bcr_patient_barcode" type="string"/>
+		<attribute name="age_at_initial_pathologic_diagnosis" label="age_at_initial_pathologic_diagnosis" type="int"/>
+		<attribute name="anatomic_neoplasm_subdivision" label="anatomic_neoplasm_subdivision" type="string"/>
+		<attribute name="b_symptoms" label="b_symptoms" type="string"/>
+		<attribute name="bcr_patient_uuid" label="bcr_patient_uuid" type="string"/>
+		<attribute name="braf_gene_analysis_performed" label="braf_gene_analysis_performed" type="boolean"/>
+		<attribute name="braf_gene_analysis_result" label="braf_gene_analysis_result" type="string"/>
+		<attribute name="circumferential_resection_margin" label="circumferential_resection_margin" type="int"/>
+		<attribute name="clinical_M" label="clinical_M" type="string"/>
+		<attribute name="clinical_N" label="clinical_N" type="string"/>
+		<attribute name="clinical_T" label="clinical_T" type="string"/>
+		<attribute name="clinical_stage" label="clinical_stage" type="string"/>
+		<attribute name="colon_polyps_present" label="colon_polyps_present" type="boolean"/>
+		<attribute name="date_of_form_completion" label="date_of_form_completion" type="date"/>
+		<attribute name="days_to_birth" label="days_to_birth" type="int"/>
+		<attribute name="days_to_death" label="days_to_death" type="int"/>
+		<attribute name="days_to_initial_pathologic_diagnosis" label="days_to_initial_pathologic_diagnosis" type="int"/>
+		<attribute name="days_to_last_followup" label="days_to_last_followup" type="int"/>
+		<attribute name="days_to_last_known_alive" label="days_to_last_known_alive" type="int"/>
+		<attribute name="days_to_psa" label="days_to_psa" type="int"/>
+		<attribute name="ethnicity" label="ethnicity" type="string"/>
+		<attribute name="extranodal_involvement" label="extranodal_involvement" type="string"/>
+		<attribute name="gender" label="gender" type="string"/>
+		<attribute name="gleason_score" label="gleason_score" type="string"/>
+		<attribute name="height" label="height" type="int"/>
+		<attribute name="histological_type" label="histological_type" type="string"/>
+		<attribute name="history_of_colon_polyps" label="history_of_colon_polyps" type="boolean"/>
+		<attribute name="history_of_neoadjuvant_treatment" label="history_of_neoadjuvant_treatment" type="boolean"/>
+		<attribute name="icd_10" label="icd_10" type="string"/>
+		<attribute name="icd_o_3_histology" label="icd_o_3_histology" type="string"/>
+		<attribute name="icd_o_3_site" label="icd_o_3_site" type="string"/>
+		<attribute name="informed_consent_verified" label="informed_consent_verified" type="boolean"/>
+		<attribute name="kras_gene_analysis_performed" label="kras_gene_analysis_performed" type="boolean"/>
+		<attribute name="kras_mutation_codon" label="kras_mutation_codon" type="string"/>
+		<attribute name="kras_mutation_found" label="kras_mutation_found" type="boolean"/>
+		<attribute name="loss_expression_of_mismatch_repair_proteins_by_ihc" label="loss_expression_of_mismatch_repair_proteins_by_ihc" type="boolean"/>
+		<attribute name="loss_expression_of_mismatch_repair_proteins_by_ihc_result" label="loss_expression_of_mismatch_repair_proteins_by_ihc_result" type="string"/>
+		<attribute name="lymph_node_examined_count" label="lymph_node_examined_count" type="int"/>
+		<attribute name="lymphatic_invasion" label="lymphatic_invasion" type="boolean"/>
+		<attribute name="microsatellite_instability" label="microsatellite_instability" type="boolean"/>
+		<attribute name="non_nodal_tumor_deposits" label="non_nodal_tumor_deposits" type="boolean"/>
+		<attribute name="number_of_abnormal_loci" label="number_of_abnormal_loci" type="int"/>
+		<attribute name="number_of_first_degree_relatives_with_cancer_diagnosis" label="number_of_first_degree_relatives_with_cancer_diagnosis" type="int"/>
+		<attribute name="number_of_loci_tested" label="number_of_loci_tested" type="int"/>
+		<attribute name="number_of_lymphnodes_positive_by_he" label="number_of_lymphnodes_positive_by_he" type="int"/>
+		<attribute name="number_of_lymphnodes_positive_by_ihc" label="number_of_lymphnodes_positive_by_ihc" type="int"/>
+		<attribute name="pathologic_M" label="pathologic_M" type="string"/>
+		<attribute name="pathologic_N" label="pathologic_N" type="string"/>
+		<attribute name="pathologic_T" label="pathologic_T" type="string"/>
+		<attribute name="pathologic_stage" label="pathologic_stage" type="string"/>
+		<attribute name="patient_id" label="patient_id" type="int"/>
+		<attribute name="perineural_invasion_present" label="perineural_invasion_present" type="boolean"/>
+		<attribute name="person_neoplasm_cancer_status" label="person_neoplasm_cancer_status" type="string"/>
+		<attribute name="preoperative_pretreatment_cea_level" label="preoperative_pretreatment_cea_level" type="float"/>
+		<attribute name="primary_lymph_node_presentation_assessment" label="primary_lymph_node_presentation_assessment" type="boolean"/>
+		<attribute name="primary_pattern" label="primary_pattern" type="string"/>
+		<attribute name="prior_dx" label="prior_dx" type="boolean"/>
+		<attribute name="psa_value" label="psa_value" type="string"/>
+		<attribute name="race" label="race" type="string"/>
+		<attribute name="residual_tumor" label="residual_tumor" type="string"/>
+		<attribute name="secondary_pattern" label="secondary_pattern" type="string"/>
+		<attribute name="synchronous_colon_cancer_present" label="synchronous_colon_cancer_present" type="boolean"/>
+		<attribute name="system_version" label="system_version" type="string"/>
+		<attribute name="tertiary_pattern" label="tertiary_pattern" type="string"/>
+		<attribute name="tissue_source_site" label="tissue_source_site" type="string"/>
+		<attribute name="tumor_tissue_site" label="tumor_tissue_site" type="string"/>
+		<attribute name="venous_invasion" label="venous_invasion" type="boolean"/>
+		<attribute name="vital_status" label="vital_status" type="string"/>
+		<attribute name="weight" label="weight" type="float"/>
+		<attribute name="year_of_initial_pathologic_diagnosis" label="year_of_initial_pathologic_diagnosis" type="int"/>
+	</class>
+</format>
