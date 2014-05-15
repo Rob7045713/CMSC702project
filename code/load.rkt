@@ -13,24 +13,6 @@
                 #:when (equal? col-name (second attr)))
       i)))
 
-;; XExpr Input-Port -> (Listof (TableDesc × (Map (Listof Id) (Listof Val))))
-;; load database from given description and input stream
-(define (load-dtb format-desc ins)
-  (match format-desc
-    [(<> format (@: [ext name] [delimited "true"] [delimiter d]) body ...)
-     (match-let*-values ([(class-descs)
-                          (map xexpr->table-desc (filter-tag 'class body))]
-                         [((list main-desc) aux-descs)
-                          (partition (match-lambda
-                                       [(table-desc n _ _ _ _) (equal? n name)])
-                                     class-descs)]
-                         [(main-table) (load-main-table main-desc ins (escape d))]
-                         [(aux-tables)
-                          (for/list ([aux-desc aux-descs])
-                            (make-aux-table main-table main-desc aux-desc))])
-       (resolve-references (cons main-table aux-tables) (cons main-desc aux-descs)))]
-    [desc (error "BS format description" desc)]))
-
 ;; XExpr -> TableDesc
 (define (xexpr->table-desc xexpr)
   ;; retrieves 'label' attribute of all given XExpr with given tag
@@ -56,43 +38,45 @@
                    (map list collection-names collection-types)))]
     [desc (error "BS class description" desc)]))
 
-;; TableDesc InputPort -> Table
-;; load main-table from given input stream
-(define (load-main-table desc ins [delim "\t"])
+;; TableDesc (Id -> Int) -> (Table (Listof Val) -> Void)
+(define (make-updater desc label->idx)
+  ;; TODO references and collecions
   (let* ([a-labels (map first (table-desc-attributes desc))]
          [a-names (map second (table-desc-attributes desc))]
-         [a-converters (map (compose type->converter third) (table-desc-attributes desc))]
+         [a-indices (map label->idx a-labels)]
+         [a-converters (map (∘ type->converter third) (table-desc-attributes desc))]
          [id-names (table-desc-primary-ids desc)])
-    
-    (for*/fold ([tab (hash)]) ([in (in-list ins)] [l (sequence-tail (in-lines in) 1)])
-      (let* ([fields (for/list ([s (string-split l delim)] [convert a-converters])
-                       (convert s))]
-             [id-fields (for/list ([v fields] [n a-names] #:when (member n id-names)) v)])
-        ;; TODO do references too or just lookup?
-        (hash-set tab id-fields fields)))))
+    (λ (table fields)
+      (let* ([fields↓ (for/list ([l a-labels] [convert a-converters])
+                        (convert (list-ref fields (label->idx l))))]
+             [id-fields↓ (for/list ([v fields↓] [n a-names] #:when (member n id-names)) v)])
+        (unless (hash-has-key? table id-fields↓)
+          (hash-set! table id-fields↓ fields↓))))))
 
-;; Table TableDesc TableDesc -> Table
-;; make auxiliary table from main table and descriptions
-(define (make-aux-table main main-desc aux-desc)
-  (let* ([a-labels/aux (map first (table-desc-attributes aux-desc))]
-         [a-labels/main (map second (table-desc-attributes main-desc))]
-         [a-indices/aux (for/list ([l a-labels/aux]) (index-of l a-labels/main))]
-         [c-names/aux (map first (table-desc-collections aux-desc))]
-         [c-types/aux (map second (table-desc-collections aux-desc))]
-         [name->label (λ (name)
-                        (or (for/first ([attr (table-desc-attributes aux-desc)]
-                                        #:when (equal? (second attr) name))
-                              (first attr))
-                            (error "No name for label" name)))]
-         [primary-indices/aux (for/list ([n (table-desc-primary-ids aux-desc)])
-                                (index-of (name->label n) a-labels/main))])
-    (for/fold ([aux (hash)]) ([(main-ids main-fields) (in-hash main)])
-      (let* ([aux-fields (append (take-indices main-fields a-indices/aux)
-                                 (for/list ([c c-names/aux] [t c-types/aux]) (box t)))]
-             [aux-ids (take-indices main-fields primary-indices/aux)])
-        (match (hash-ref aux aux-ids #f)
-          [#f (hash-set aux aux-ids aux-fields)]
-          [_ aux])))))
+;; XExpr Input-Port -> (Listof (TableDesc × (Map (Listof Id) (Listof Val))))
+;; load database from given description and input stream
+(define (load-dtb format-desc ins)
+  (match format-desc
+    [(<> format (@: [ext name] [delimited "true"] [delimiter d]) body ...)
+     (match-let* ([class-descs
+                   (map xexpr->table-desc (filter-tag 'class body))]
+                  [tables (for/list ([_ class-descs]) (make-hash))]
+                  [delim (escape d)])
+       ;; first pass reading everything in
+       (for ([in (in-list ins)])
+         (let* ([lines (in-lines in)]
+                [line0 (sequence-ref lines 0)]
+                [header (string-split line0 delim)]
+                [col->idx (map->fun (for/hash ([col header] [i (in-naturals)])
+                                      (values col i)))]
+                [update!s (for/list ([desc class-descs]) (make-updater desc col->idx))])
+           (for ([l (sequence-tail lines 1)])
+             (let ([fields (string-split l delim)])
+               (for ([update! update!s] [tab tables])
+                 (update! tab fields))))))
+       ;; TODO second pass resolving references
+       (map list class-descs tables))]
+    [desc (error "BS format description" desc)]))
 
 ;; (Listof Table) (Listof TableDesc) -> (Listof Table)
 ;; resolve references between objects
@@ -116,7 +100,11 @@
 (define (type->converter t)
   (match t
     [(or "float" "int" "integer" "real" "number") string->number]
-    [(or "bool" "boolean") (match-lambda ["true" #t] ["false" #f])]
+    #;[(or "bool" "boolean")
+     (λ (s)
+       (cond [(or (string-ci=? s "yes") (string-ci=? s "true")) #t]
+             [(or (string-ci=? s "no") (string-ci=? s "false")) #f]
+             [else (error "Don't know how to convert to boolean" s)]))]
     [_ identity]))
 
 ;; String -> (List String String)
