@@ -15,15 +15,16 @@ Translation will create `desc.xml.out` for each `desc.xml`
 Query
 ------------
 
-To load database with description `desc.xml` from data files `data1.txt`, `data2.txt`, etc. and run query `query.xml`. Use flag `-v` for verbose mode.
+To run query `query.xml` on database with descriptions under directory `descriptions-dir` and data under `data-dir`, run:
 
-> racket run-query <desc.xml> <query.xml> [data1.txt] [data2.txt] ...
+> racket run-query <query.xml> <descriptions-dir> <data-dir>
 
-For example:
+Additionally, flag `-v` dumps statistics.
 
-> racket run-query -v ../file_formats/exon_expr.xml ../file_formats/query_mean.xml ../data/*__expression_exon.txt
+> racket run-query -v ../queries/mean.xml ../descriptions ../data
 
 Result:
+
 > Done loading. Objects created:
 >
 > -- 239321 Exon(s)
@@ -31,5 +32,11 @@ Result:
 > -- 5 Experiment(s)
 >
 > -- 1196605 exon_expr(s)
+> 
+> Done loading. Objects created:
+>
+> -- 41 Experiment(s)
+>
+> -- 41 Patient(s)
 >
 > Query result: 504.0117708015594

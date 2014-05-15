@@ -5,8 +5,39 @@
          "utils.rkt" "xexpr.rkt" "rob.rkt")
 
 (struct table-desc (name primary-ids attributes references collections) #:transparent)
-
 (define verbose? (make-parameter #f))
+
+;; (Listof TableDesc) (Listof (Listof Input-Ports)) -> Dtb
+(define (load-dtbs descs in-lists)
+  (apply append (for/list ([desc descs] [ins in-lists])
+                  (load-dtb desc ins))))
+
+;; XExpr Input-Port -> (Listof (TableDesc × (Map (Listof Id) (Listof Val))))
+;; load database from given description and input stream
+(define (load-dtb format-desc ins)
+  (match format-desc
+    [(<> format (@: [ext name] [delimited "true"] [delimiter d]) body ...)
+     (match-let* ([class-descs (map xexpr->table-desc (filter-tag 'class body))]
+                  [tables (for/list ([_ class-descs]) (make-hash))]
+                  [delim (escape d)])
+       ;; first pass reading everything in
+       (for ([in (in-list ins)])
+         (let* ([lines (in-lines in)]
+                [header (string-split (sequence-ref lines 0) delim)]
+                [col->idx (map->fun (for/hash ([col header] [i (in-naturals)])
+                                      (values col i)))]
+                [update!s (for/list ([desc class-descs]) (make-updater desc col->idx))])
+           (for ([l (sequence-tail lines 1)])
+             (let ([fields (string-split l delim)])
+               (for ([update! update!s] [tab tables])
+                 (update! tab fields))))))
+       (when (verbose?)
+         (printf "Done loading. Objects created:~n")
+         (for ([t tables] [c class-descs])
+           (printf "-- ~a ~a(s)~n" (hash-count t) (table-desc-name c))))
+       ;; TODO second pass resolving references
+       (map list class-descs tables))]
+    [desc (error "BS format description" desc)]))
 
 ;; TableDesc (Id -> Int) -> (Table (Listof Val) -> Void)
 (define (make-updater desc label->idx)
@@ -21,35 +52,6 @@
              [id-fields↓ (for/list ([v fields↓] [n a-names] #:when (member n id-names)) v)])
         (unless (hash-has-key? table id-fields↓)
           (hash-set! table id-fields↓ fields↓))))))
-
-;; XExpr Input-Port -> (Listof (TableDesc × (Map (Listof Id) (Listof Val))))
-;; load database from given description and input stream
-(define (load-dtb format-desc ins)
-  (match format-desc
-    [(<> format (@: [ext name] [delimited "true"] [delimiter d]) body ...)
-     (match-let* ([class-descs
-                   (map xexpr->table-desc (filter-tag 'class body))]
-                  [tables (for/list ([_ class-descs]) (make-hash))]
-                  [delim (escape d)])
-       ;; first pass reading everything in
-       (for ([in (in-list ins)])
-         (let* ([lines (in-lines in)]
-                [line0 (sequence-ref lines 0)]
-                [header (string-split line0 delim)]
-                [col->idx (map->fun (for/hash ([col header] [i (in-naturals)])
-                                      (values col i)))]
-                [update!s (for/list ([desc class-descs]) (make-updater desc col->idx))])
-           (for ([l (sequence-tail lines 1)])
-             (let ([fields (string-split l delim)])
-               (for ([update! update!s] [tab tables])
-                 (update! tab fields))))))
-       ;; TODO second pass resolving references
-       (when (verbose?)
-         (printf "Done loading. Objects created:~n")
-         (for ([t tables] [c class-descs])
-           (printf "-- ~a ~a(s)~n" (hash-count t) (table-desc-name c))))
-       (map list class-descs tables))]
-    [desc (error "BS format description" desc)]))
 
 ;; (Listof Table) (Listof TableDesc) -> (Listof Table)
 ;; resolve references between objects
@@ -127,7 +129,7 @@
 
 ;; (Listof (TableDesc Table)) String -> Table
 (define (table-by-name dtb name)
-  (for*/first ([tb dtb] #:when (equal? name (in-value (table-desc-name (first tb)))))
+  (for*/first ([tb dtb] #:when (equal? name (table-desc-name (first tb))))
     tb))
 
 ;; convert string to other data
