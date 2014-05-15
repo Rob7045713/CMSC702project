@@ -1,0 +1,7 @@
+<operation name="mean">
+  <param>
+    <query view="Patient.age_at_initial_pathologic_diagnosis">
+      <constraint path="Patient.race" op="=" value="WHITE" />
+    </query>
+  </param>
+</operation>

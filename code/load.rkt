@@ -69,28 +69,38 @@
   (match xexpr
     [(<> operation (@: [name op])
          (<> param _ ... (<> query (@: [view view])
-                             (<> constraint (@: [path path] [op constraint-op] [value value])))))
+                             (<> constraint (@: [path paths] [op constraint-ops] [value values]))
+                             ...)))
      (match-let ([(list view-tab view-col) (string->path view)]
-                 [(list constraint-tab constraint-col) (string->path path)])
+                 [(list (list constraint-tabs constraint-cols) ...) (map string->path paths)])
        (cond
-         [(equal? view-tab constraint-tab)
+         [(for/and ([tab constraint-tabs]) (equal? view-tab tab))
           (let* ([tab (table-by-name dtb view-tab)]
                  [view-col↓ (dtb-name->idx dtb view-tab view-col)]
-                 [constraint-col↓ (dtb-name->idx dtb constraint-tab constraint-col)]
+                 [constraint-cols↓ (for/list ([constraint-tab constraint-tabs] [constraint-col constraint-cols])
+                                     (dtb-name->idx dtb constraint-tab constraint-col))]
                  [op↓ (string->op op)]
-                 [constraint-op↓ (string->op constraint-op)]
-                 [constraint-type (third (list-ref (table-desc-attributes (first tab)) constraint-col↓))]
-                 [value↓ ((type->converter constraint-type) value)])
+                 [constraint-ops↓ (map string->op constraint-ops)]
+                 [constraint-types (for/list ([constraint-col↓ constraint-cols↓])
+                                     (third (list-ref (table-desc-attributes (first tab)) constraint-col↓)))]
+                 [values↓ (for/list ([v values] [t constraint-types])
+                            ((type->converter t) v))])
             (cond
-              [(and (integer? view-col↓) (integer? constraint-col↓))
+              [(and (integer? view-col↓) (andmap integer? constraint-cols↓))
                (when (verbose?)
-                 (printf "Query: ~a(~a) where (~a ~a ~a)~n" op view path constraint-op value))
+                 (printf "Query: ~a(~a) where " op view)
+                 (printf "~a~n" (string-join (for/list ([path paths] [constraint-op constraint-ops] [value values])
+                                               (format "(~a ~a ~a)" path constraint-op value))
+                                             " and ")))
                (apply
                 op↓
                 (for/list ([obj (in-hash-values (second tab))]
-                           #:when (constraint-op↓ (list-ref obj constraint-col↓) value↓))
+                           #:when (for/and ([constraint-op↓ constraint-ops↓]
+                                            [constraint-col↓ constraint-cols↓]
+                                            [value↓ values↓])
+                                    (constraint-op↓ (list-ref obj constraint-col↓) value↓)))
                   (list-ref obj view-col↓)))]
-              [else (error "Unknown path(s), check for typos" (list view path))]))]
+              [else (error "Unknown path(s), check for typos" (list* view paths))]))]
          [else (error "Query enot supported yet" xexpr)]))]
     [q (error "Query not supported yet" q)]))
 
