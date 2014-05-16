@@ -32,3 +32,6 @@
 ;; convert a hashtable to a function
 (define ((map->fun m) x)
   (hash-ref m x (λ () (error "out of domain" x (hash-keys m)))))
+
+(define (list⊆ xs ys)
+  (for/and ([x xs]) (member x ys)))
