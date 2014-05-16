@@ -6,3 +6,4 @@
 | mean_2_constraints.xml | mean(exon_expr.raw_counts) where (exon_expr.barcode = TCGA-A6-5659-01A-01R-1653-07) and (exon_expr.raw_counts > 500) | Average raw counts that are above 500 of a specific experiment | 24.178s | 2943.928116187253
 | mean_age_white.xml | mean(Patient.age_at_initial_pathologic_diagnosis) where (Patient.race = WHITE) | Average age at initial diagnosis of white patients | 23.482s | 2081/33
 | mean_across_users.xml | mean(exon_expr.raw_counts) where (exon_expr.exon = chr10:100003848-100004653:+) | Average raw counts of a specific exon | 24.386s | 490.6
+| joint_query.xml | mean(exon_expr.raw_counts) where (exon_expr.exon = chr10:100003848-100004653:+) and (Patient.pathologic_stage = Stage I) |  Average raw counts of a specific exon for patients at stage I |  20.111s | 637.0
