@@ -23,6 +23,15 @@ Additionally, flag `-v` dumps statistics.
 
     racket run-query.rkt -v ../queries/mean.xml ../descriptions ../data
 
+For joint queries, we need to preprocess the data files (to deal with the barcode)
+and store them in `../data2`, run `python pre-process.py` in the parent directory
+should do all the things necessary.
+
+    cd ..
+    python pre-process.py
+    cd code/
+    racket run-query.rkt -v ../queries/joint_query.xml ../descriptions ../data2
+
 Result:
 
     Done loading. Objects created:
