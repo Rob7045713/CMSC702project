@@ -216,3 +216,6 @@ pip-log.txt
 
 # ignore converted files
 *.xml.out
+
+# run pre-process to generate this dir
+/data2/

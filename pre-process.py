@@ -1,14 +1,19 @@
 import os
 import sys
+import shutil
 
 all_words = []
 files = {}
-dir = os.getcwd() + '/data'
+indir = os.getcwd() + '/data'
 outdir = os.getcwd() + '/data2'
-for filename in os.listdir(dir):
+
+if not os.path.exists(outdir):
+    os.makedirs(outdir)
+
+for filename in os.listdir(indir):
     if 'unc' in filename:
         outfile = open(outdir + '/' + filename, 'w')
-        with open(dir + '/' + filename, 'r') as f:
+        with open(indir + '/' + filename, 'r') as f:
             headers = f.readline()
             cis = headers.split('\t')
             outfile.write(cis[0] + '\tbarcode_suffix\t' + '\t'.join(cis[1:]))
@@ -16,4 +21,5 @@ for filename in os.listdir(dir):
                 outfile.write(line[:12] + '\t' + line[12:])
         outfile.close()
                 
-
+shutil.copyfile(indir + '/' + 'clinical_patient_coad.txt',
+                outdir + '/' + 'clinical_patient_coad.txt')
