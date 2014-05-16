@@ -59,19 +59,19 @@
                                 [constraint-col↓ constraint-cols↓]
                                 [constraint-op↓ constraint-ops↓]
                                 [value↓ values↓])
-                        (constraint-op↓
-                         (cond
-                           [(equal? view-tab-name constraint-tab-name)
-                            (list-ref obj constraint-col↓)]
-                           [else
-                            (let* ([constraint-ids 
+                        (let ([lhs
+                               (cond
+                                 [(equal? view-tab-name constraint-tab-name)
+                                  (list-ref obj constraint-col↓)]
+                                 [else
+                                  (let* ([constraint-ids 
                                     (for/list ([id (table-desc-primary-ids (first view-tab))]
                                                [v obj-key]
                                                #:when (member id (table-desc-primary-ids (first constraint-tab))))
                                       v)]
                                    [target (hash-ref (second constraint-tab) constraint-ids)])
-                              (list-ref target constraint-col↓))])
-                         value↓)))
+                              (list-ref target constraint-col↓))])])
+                          (constraint-op↓ lhs value↓))))
              (list-ref obj view-col↓)))]
          [else (error "Query not supported yet" xexpr)]))]
     [q (error "Query not supported yet" q)]))
