@@ -1,4 +1,4 @@
-The code has been tested to work with [Racket](http://download.racket-lang.org/) 6.0.1.
+The code has been tested to work with [Racket](http://download.racket-lang.org/) 6.0.1 and 6.0.
 
 Usage
 ==============
@@ -17,26 +17,24 @@ Query
 
 To run query `query.xml` on database with descriptions under directory `descriptions-dir` and data under `data-dir`, run:
 
-> racket run-query <query.xml> <descriptions-dir> <data-dir>
+> racket run-query.rkt <query.xml> <descriptions-dir> <data-dir>
 
 Additionally, flag `-v` dumps statistics.
 
-> racket run-query -v ../queries/mean.xml ../descriptions ../data
+> racket run-query.rkt -v ../queries/mean.xml ../descriptions ../data
 
 Result:
 
 > Done loading. Objects created:
->
-> -- 239321 Exon(s)
->
+> -- 239322 Exon(s)
 > -- 5 Experiment(s)
->
-> -- 1196605 exon_expr(s)
-> 
+> -- 1196610 exon_expr(s)
 > Done loading. Objects created:
+> -- 42 Experiment(s)
+> -- 42 Patient(s)
+> Query: mean(exon_expr.raw_counts) where (exon_expr.barcode = TCGA-A6-5659-01A-01R-1653-07)
+> Query result: 504.0123264889981
 >
-> -- 41 Experiment(s)
->
-> -- 41 Patient(s)
->
-> Query result: 504.0117708015594
+> real  0m24.616s
+> user  0m24.217s
+> sys   0m0.433s
